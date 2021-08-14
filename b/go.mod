@@ -1,4 +1,4 @@
-module github.com/kaihendry/go-trace-me
+module github.com/kaihendry/x-amzn-trace-id/b
 
 go 1.16
 
