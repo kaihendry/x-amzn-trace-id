@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -20,17 +21,17 @@ var Version string
 func main() {
 	http.Handle("/", xray.Handler(xray.NewFixedSegmentNamer("aApp"), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// Fetch url
-		getAddress := "https://dx3kwbyjpd.execute-api.ap-southeast-1.amazonaws.com/"
-		// trace request with Xray
+		endpoint, ok := os.LookupEnv("ENDPOINT")
 
-		resp, err := ctxhttp.Get(r.Context(), xray.Client(nil), getAddress)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		if !ok {
+			http.Error(w, fmt.Errorf("Tracing endpoint is unset").Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if resp.StatusCode != 200 {
+		// trace request to endpoint with Xray
+		resp, err := ctxhttp.Get(r.Context(), xray.Client(nil), endpoint)
+
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -101,13 +102,6 @@ func envMap() map[string]string {
 	envmap := make(map[string]string)
 	for _, e := range os.Environ() {
 		ep := strings.SplitN(e, "=", 2)
-		// Skip potentially security sensitive AWS stuff
-		if ep[0] == "AWS_SECRET_ACCESS_KEY" {
-			continue
-		}
-		if ep[0] == "AWS_SESSION_TOKEN" {
-			continue
-		}
 		envmap[ep[0]] = ep[1]
 	}
 	return envmap

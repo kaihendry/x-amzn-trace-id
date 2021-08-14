@@ -8,6 +8,9 @@ Resources:
   AMainFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Environment:
+        Variables:
+          ENDPOINT: !Sub "https://${BGateway}.execute-api.${AWS::Region}.amazonaws.com/"
       Tracing: Active
       CodeUri: ./a
       Runtime: go1.x
@@ -20,9 +23,6 @@ Resources:
             Path: /{proxy+}
             Method: ANY
       Handler: main
-    Environment:
-      Variables:
-        ENDPOINT: !Sub "https://${BGateway}.execute-api.${AWS::Region}.amazonaws.com/"
     Metadata:
       BuildMethod: makefile
 
